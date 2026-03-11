@@ -1,0 +1,55 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安裝 Tesseract OCR
+        run: |
+          choco install tesseract --yes
+          echo "C:\Program Files\Tesseract-OCR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: 安裝 Python 套件
+        run: |
+          pip install selenium pillow pytesseract openpyxl pandas webdriver-manager pyinstaller
+
+      - name: 打包成 .exe
+        run: |
+          pyinstaller --onefile --windowed `
+            --name "einvoice-tool" `
+            --hidden-import selenium.webdriver.chrome.webdriver `
+            --hidden-import selenium.webdriver.common.by `
+            --hidden-import selenium.webdriver.chrome.options `
+            --hidden-import selenium.webdriver.chrome.service `
+            --hidden-import selenium.webdriver.support.ui `
+            --hidden-import selenium.webdriver.support.expected_conditions `
+            --hidden-import selenium.common.exceptions `
+            --hidden-import webdriver_manager.chrome `
+            --hidden-import PIL.Image `
+            --hidden-import PIL.ImageFilter `
+            --hidden-import PIL.ImageEnhance `
+            --hidden-import pytesseract `
+            --hidden-import pandas `
+            --hidden-import openpyxl `
+            einvoice_app.py
+
+      - name: 上傳 .exe 成品
+        uses: actions/upload-artifact@v4
+        with:
+          name: einvoice-tool
+          path: dist\einvoice-tool.exe
+          retention-days: 30
