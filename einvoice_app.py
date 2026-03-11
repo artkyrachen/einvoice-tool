@@ -14,47 +14,24 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
-# ── 延遲匯入，讓 GUI 先開啟再載入重套件 ──────────────────
-_selenium_ready = False
-webdriver = None
-By = Options = Service = WebDriverWait = EC = None
-TimeoutException = NoSuchElementException = None
-Image = ImageFilter = ImageEnhance = None
-pytesseract = None
-pd = openpyxl = None
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.common.keys import Keys
+from PIL import Image, ImageFilter, ImageEnhance
+import pytesseract
+import pandas as pd
+import openpyxl
+from webdriver_manager.chrome import ChromeDriverManager
 
 TARGET_URL = "https://www.einvoice.nat.gov.tw/portal/btc/btc604w/search"
 MAX_RETRY  = 5
 WAIT_SEC   = 8
-
-
-# ════════════════════════════════════════════════════════
-#  核心爬蟲邏輯
-# ════════════════════════════════════════════════════════
-def _lazy_import():
-    global _selenium_ready, webdriver, By, Options, Service
-    global WebDriverWait, EC, TimeoutException, NoSuchElementException
-    global Image, ImageFilter, ImageEnhance, pytesseract, pd, openpyxl
-
-    from selenium import webdriver as _wd
-    from selenium.webdriver.common.by import By as _By
-    from selenium.webdriver.chrome.options import Options as _Opts
-    from selenium.webdriver.chrome.service import Service as _Svc
-    from selenium.webdriver.support.ui import WebDriverWait as _WW
-    from selenium.webdriver.support import expected_conditions as _EC
-    from selenium.common.exceptions import (
-        TimeoutException as _TE, NoSuchElementException as _NSE)
-    from PIL import Image as _Im, ImageFilter as _IF, ImageEnhance as _IEn
-    import pytesseract as _pt
-    import pandas as _pd
-    import openpyxl as _ox
-
-    webdriver = _wd;  By = _By;  Options = _Opts;  Service = _Svc
-    WebDriverWait = _WW;  EC = _EC
-    TimeoutException = _TE;  NoSuchElementException = _NSE
-    Image = _Im;  ImageFilter = _IF;  ImageEnhance = _IEn
-    pytesseract = _pt;  pd = _pd;  openpyxl = _ox
-    _selenium_ready = True
+_selenium_ready = True
 
 
 def create_driver(headless=True):
@@ -67,7 +44,6 @@ def create_driver(headless=True):
     if headless:
         opts.add_argument("--headless=new")
     try:
-        from webdriver_manager.chrome import ChromeDriverManager
         drv = webdriver.Chrome(
             service=Service(ChromeDriverManager().install()), options=opts)
     except Exception:
@@ -500,9 +476,6 @@ class App(tk.Tk):
 
     def _worker(self, ban_list, headless):
         try:
-            if not _selenium_ready:
-                self._queue.put(("log", "載入套件中..."))
-                _lazy_import()
             drv = create_driver(headless=headless)
             try:
                 for i, ban in enumerate(ban_list, 1):
