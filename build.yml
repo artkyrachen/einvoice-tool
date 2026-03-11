@@ -31,14 +31,8 @@ jobs:
         run: |
           pyinstaller --onefile --windowed `
             --name "einvoice-tool" `
-            --hidden-import selenium.webdriver.chrome.webdriver `
-            --hidden-import selenium.webdriver.common.by `
-            --hidden-import selenium.webdriver.chrome.options `
-            --hidden-import selenium.webdriver.chrome.service `
-            --hidden-import selenium.webdriver.support.ui `
-            --hidden-import selenium.webdriver.support.expected_conditions `
-            --hidden-import selenium.common.exceptions `
-            --hidden-import webdriver_manager.chrome `
+            --collect-all selenium `
+            --collect-all webdriver_manager `
             --hidden-import PIL.Image `
             --hidden-import PIL.ImageFilter `
             --hidden-import PIL.ImageEnhance `
